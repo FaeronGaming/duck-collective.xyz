@@ -11,7 +11,7 @@ type HomeProps = {
 
 export async function getServerSideProps(): Promise<{ props: HomeProps }> {
   const accessToken = await getAccessToken();
-  const activeStreams = await getActiveStreams(accessToken, ['santa_fae', 'bloodkaosv', 'mitzy_nyan', 'SR_Kaif']);
+  const activeStreams = await getActiveStreams(accessToken, ['santa_fae', 'bloodkaosv', 'mitzy_nyan']);
   return { 
     props: { activeStreams }
   };
