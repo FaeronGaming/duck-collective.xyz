@@ -1,23 +1,42 @@
 import { Heading } from 'grommet'
 import Head from 'next/head'
+import { ReactNode } from 'react';
+import useSWR from 'swr';
 import { NoOneOnline } from '../components/streaming/NoOneOnline'
 import { TwitchPlayer } from '../components/streaming/TwitchPlayer';
-import { getAccessToken } from '../twitch/getAccessToken'
-import { getActiveStreams } from '../twitch/getActiveStreams';
+import { useRedis } from '../middleware/redis';
+import { getNewAccessToken } from '../twitch/getAccessToken'
+import { getActiveStreams, getCachedStreams, watchedStreams } from '../twitch/getActiveStreams';
 
 type HomeProps = {
-  activeStreams: string[];
-}
+  streams: string[];
+};
+
+const fetcher = (...args) => fetch(...args).then(res => res.json()).then(data => {
+  console.log(data)
+  return data;
+});
 
 export async function getServerSideProps(): Promise<{ props: HomeProps }> {
-  const accessToken = await getAccessToken();
-  const activeStreams = await getActiveStreams(accessToken, ['santa_fae', 'bloodkaosv', 'mitzy_nyan']);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const streams = await useRedis(async client => {
+    return await getCachedStreams(client) || ([] as unknown as string[]);
+  });
+
   return { 
-    props: { activeStreams }
+    props: { streams }
   };
 }
 
-export default function Home({ activeStreams }: HomeProps) {
+export default function Home({ streams }: HomeProps) {
+  const {data, isValidating} = useSWR<HomeProps>('/api/streams/active', fetcher, { initialData: {streams} });
+
+  let displayedStreams: ReactNode = <NoOneOnline />;
+  if (data.streams.length) {
+    displayedStreams = data.streams.map(name =>(
+      <TwitchPlayer name={name} key={name} />
+    ));
+  }
   return (
     <>
       <Head>
@@ -29,10 +48,7 @@ export default function Home({ activeStreams }: HomeProps) {
       <Heading margin="medium" alignSelf="center" textAlign="center">We Are The Duck Collective</Heading>
       <Heading level="2" alignSelf="center">Pardon our dust as we setup</Heading>
 
-      { !activeStreams.length && <NoOneOnline /> }
-      { activeStreams.length && activeStreams.map(name => (
-        <TwitchPlayer name={name} key={name} />
-      ))}
+      { displayedStreams }
     </>
   )
 }

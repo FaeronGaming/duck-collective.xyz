@@ -1,6 +1,8 @@
+import { RedisClient } from "redis";
+
 type AccessTokenResponse = { access_token: string; };
 
-export async function getAccessToken(): Promise<string> {
+export async function getNewAccessToken(): Promise<string> {
   const params = new URLSearchParams({
     client_id: process.env.TWITCH_CLIENT_ID,
     client_secret: process.env.TWITCH_SECRET,
@@ -21,4 +23,19 @@ export async function getAccessToken(): Promise<string> {
   } catch (e) {
     throw e;
   }
+}
+
+export function getAccessToken(redis: RedisClient): Promise<string> {
+  const accessTokenKey = 'twitch_access_token';
+  return new Promise((resolve, reject) => {
+    redis.get(accessTokenKey, async (error, token) => {
+      if (!token) {
+        const newToken = await getNewAccessToken();
+        redis.set(accessTokenKey, newToken);
+        return resolve(newToken);
+      }
+      console.log(`using existing access token ${token}`);
+      resolve(token);
+    });
+  });
 }
