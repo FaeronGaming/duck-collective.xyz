@@ -5,17 +5,13 @@ import useSWR from 'swr';
 import { NoOneOnline } from '../components/streaming/NoOneOnline'
 import { TwitchPlayer } from '../components/streaming/TwitchPlayer';
 import { useRedis } from '../middleware/redis';
-import { getNewAccessToken } from '../twitch/getAccessToken'
-import { getActiveStreams, getCachedStreams, watchedStreams } from '../twitch/getActiveStreams';
+import { getCachedStreams } from '../twitch/getActiveStreams';
 
 type HomeProps = {
   streams: string[];
 };
 
-const fetcher = (...args) => fetch(...args).then(res => res.json()).then(data => {
-  console.log(data)
-  return data;
-});
+const fetcher = (route: string) => fetch(route).then(res => res.json());
 
 export async function getServerSideProps(): Promise<{ props: HomeProps }> {
   // eslint-disable-next-line react-hooks/rules-of-hooks
