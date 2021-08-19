@@ -6,7 +6,7 @@ type StreamsResponse = { data: User[]; };
 
 const cachedActiveStreamsKey = 'twitch_active_streams';
 
-export const watchedStreams = ['santa_fae', 'bloodkaosv', 'mitzy_nyan', 'asmongold'];
+export const watchedStreams = ['santa_fae', 'bloodkaosv', 'mitzy_nyan'];
 
 export async function getActiveStreams(accessToken: string, user_login: string[]): Promise<string[]> {
   const params = querystring.stringify({ user_login });
