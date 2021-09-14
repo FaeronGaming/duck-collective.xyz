@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^1.22.3",
     "grommet": "^2.17.4",
     "grommet-icons": "^4.6.0",
     "next": "11.1.0",

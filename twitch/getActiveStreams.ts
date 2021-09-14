@@ -20,7 +20,7 @@ export async function getActiveStreams(accessToken: string, user_login: string[]
 
     if (!response.ok) {
       throw new Error('Unable to pull active streams');
-    };
+    }
 
     const activeStreams = await response.json() as unknown as StreamsResponse;
     return activeStreams.data.map(user => user.user_name);
@@ -32,6 +32,10 @@ export async function getActiveStreams(accessToken: string, user_login: string[]
 export async function getCachedStreams(client: RedisClient): Promise<null | string[]> {
   return new Promise((resolve, reject) => {
     client.get(cachedActiveStreamsKey, (error, streams) => {
+      if (error) {
+        return reject(error);
+      }
+
       !streams
         ? resolve(null)
         : resolve(JSON.parse(streams));
@@ -43,6 +47,9 @@ export async function setCachedStreams(client: RedisClient, accessToken: string,
   const activeStreams = await getActiveStreams(accessToken, user_login);
   return new Promise(async (resolve, reject) => {
     client.set(cachedActiveStreamsKey, JSON.stringify(activeStreams), (err, reply) => {
+      if (err) {
+        return reject(err);
+      }
       resolve(activeStreams);
     });
   });
@@ -51,6 +58,9 @@ export async function setCachedStreams(client: RedisClient, accessToken: string,
 export function clearCachedStreams(client: RedisClient) {
   return new Promise((resolve, reject) => {
     client.del(cachedActiveStreamsKey, (error, reply) => {
+      if (error) {
+        return reject(error);
+      }
       resolve(null);
     })
   })
