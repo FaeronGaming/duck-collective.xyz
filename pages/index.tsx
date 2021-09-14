@@ -1,7 +1,7 @@
 import { Heading } from 'grommet'
 import Head from 'next/head'
 import { ReactNode } from 'react';
-import useSWR from 'swr';
+import useSWR, { SWRConfig } from 'swr';
 import { NoOneOnline } from '../components/streaming/NoOneOnline'
 import { TwitchPlayer } from '../components/streaming/TwitchPlayer';
 import { useRedis } from '../middleware/redis';
@@ -11,7 +11,7 @@ type HomeProps = {
   streams: string[];
 };
 
-const fetcher = (route: string) => fetch(route).then(res => res.json());
+const ACTIVE_STREAMS_URL = '/api/streams/active';
 
 export async function getServerSideProps(): Promise<{ props: HomeProps }> {
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -24,17 +24,29 @@ export async function getServerSideProps(): Promise<{ props: HomeProps }> {
   };
 }
 
-export default function Home({ streams }: HomeProps) {
-  const {data, isValidating} = useSWR<HomeProps>('/api/streams/active', fetcher, { initialData: {streams} });
+function DisplayStreams() {
+  const {data} = useSWR<HomeProps>(ACTIVE_STREAMS_URL);
 
-  let displayedStreams: ReactNode = <NoOneOnline />;
-  if (data.streams.length) {
-    displayedStreams = data.streams.map(name =>(
-      <TwitchPlayer name={name} key={name} />
-    ));
+  if (!data.streams.length) {
+    return <NoOneOnline />;
   }
+
   return (
     <>
+      {data.streams.map(name => (
+        <TwitchPlayer name={name} key={name} />
+      ))}
+    </>
+  );
+}
+
+export default function Home({ streams }: HomeProps) {
+  return (
+    <SWRConfig value={{
+      fallback: {
+        [ACTIVE_STREAMS_URL]: { streams }
+      }
+    }}>
       <Head>
         <title>We Are The Duck Collection</title>
         <meta name="description" content="Just a collection of ducks and a cat or two" />
@@ -44,7 +56,7 @@ export default function Home({ streams }: HomeProps) {
       <Heading margin="medium" alignSelf="center" textAlign="center">We Are The Duck Collective</Heading>
       <Heading level="2" alignSelf="center">Pardon our dust as we setup</Heading>
 
-      { displayedStreams }
-    </>
+      <DisplayStreams />
+    </SWRConfig>
   )
 }

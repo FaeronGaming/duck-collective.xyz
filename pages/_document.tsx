@@ -13,6 +13,7 @@ export default class Document extends NextDocument {
     try {
       ctx.renderPage = () => {
         return originalRenderPage({
+          // eslint-ignore-next-line react/display-name
           enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />),
         });
       };
