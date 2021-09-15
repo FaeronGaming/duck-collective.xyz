@@ -20,7 +20,7 @@
     "swr": "^1.0.1"
   },
   "devDependencies": {
-    "@types/react": "^17.0.18",
+    "@types/react": "^17.0.21",
     "@types/redis": "^2.8.32",
     "@vercel/node": "^1.12.1",
     "eslint": "7.32.0",
